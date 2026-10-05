@@ -1,5 +1,5 @@
 window.LAG2_RELEASE = {
-    version: '1.0.0',
+    version: '1.0.1',
     repository: 'https://github.com/asadbek31415-alt/lag2-course',
     website: 'https://asadbek31415-alt.github.io/lag2-course/'
 };

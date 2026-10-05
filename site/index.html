@@ -11,10 +11,9 @@
     <link rel="stylesheet" href="vendor/fontawesome/css/all.min.css">
 
 
-    <link rel="icon" href="logo.jpg">
     <meta name="theme-color" content="#0b1020">
     <meta name="description" content="LAG2 interactive linear algebra course with theory, visualizations and an offline MATLAB-Lite lab.">
-    <link rel="stylesheet" href="css/style.css?v=1.0.0">
+    <link rel="stylesheet" href="css/style.css?v=1.0.1">
 </head>
 <body>
     <aside class="course-update" id="course-update" role="status" hidden>
@@ -26,12 +25,9 @@
                 <button class="icon-btn" id="collapse-sidebar" title="Hide navigation" aria-label="Hide navigation">
                     <i class="fas fa-bars"></i>
                 </button>
-                <div class="brand-mark">
-                    <img src="logo.jpg" alt="LAG2 logo" width="42" height="42">
-                </div>
                 <div class="brand-copy">
                     <h1>LAG2 Course</h1>
-                    <span>Linear Algebra · <span class="course-version">v1.0.0</span></span>
+                    <span class="course-version">v1.0.1</span>
                 </div>
             </div>
 
@@ -52,6 +48,8 @@
         <button class="restore-tab restore-sidebar hidden" id="restore-sidebar" aria-label="Show navigation">
             <i class="fas fa-bars"></i>
         </button>
+
+        <div class="sidebar-resizer" id="sidebar-resizer" role="separator" tabindex="0" aria-orientation="vertical" aria-label="Resize navigation" aria-valuemin="220" aria-valuemax="420" aria-valuenow="292" aria-controls="sidebar"></div>
 
         <main class="workspace">
             <section class="theory-pane pane" id="theory-pane">
@@ -123,9 +121,9 @@
                             </div>
                         </section>
 
-                        <aside class="variables-panel" id="variables-panel" aria-label="Workspace variables">
+                        <aside class="variables-panel" id="variables-panel" aria-label="Variables">
                             <div class="variables-header">
-                                <h3>Workspace</h3>
+                                <h3>Variables</h3>
                                 <button class="icon-btn" id="close-variables" aria-label="Hide variables">
                                     <i class="fas fa-times"></i>
                                 </button>
@@ -167,10 +165,10 @@
         <iframe id="figure-frame" title="MATLAB plot"></iframe>
     </dialog>
 
-    <script src="js/release.js?v=1.0.0"></script>
-    <script src="js/engine.js?v=1.0.0"></script>
-    <script src="js/content.js?v=1.0.0"></script>
-    <script src="js/animations.js?v=1.0.0"></script>
-    <script src="js/main.js?v=1.0.0"></script>
+    <script src="js/release.js?v=1.0.1"></script>
+    <script src="js/engine.js?v=1.0.1"></script>
+    <script src="js/content.js?v=1.0.1"></script>
+    <script src="js/animations.js?v=1.0.1"></script>
+    <script src="js/main.js?v=1.0.1"></script>
 </body>
 </html>

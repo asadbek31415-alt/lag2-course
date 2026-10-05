@@ -50,6 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
         renderNavigation();
         bindEvents();
         setupResizer();
+        setupSidebarResizer();
         const parts = location.hash.slice(1).split('/');
         const chapter = findChapter(parts[0]) || CourseContent.dashboard;
         const section = findSection(chapter, parts[1]);
@@ -1850,7 +1851,7 @@ fit();
         clearWorkspaceBtn.addEventListener("click", () => {
             MatlabEngine.clearWorkspace();
             updateVariables();
-            printToConsole("Workspace cleared.", "system-msg");
+            printToConsole("Variables cleared.", "system-msg");
         });
         resetMatlabBtn.addEventListener("click", resetMatlab);
 
@@ -2283,7 +2284,7 @@ fit();
         figureData.clear();
         clearConsole();
         updateVariables();
-        if (printMessage) printToConsole("MATLAB-Lite opened. Workspace and Command Window are fresh.", "system-msg");
+        if (printMessage) printToConsole("MATLAB-Lite reset. Output, variables and plots cleared.", "system-msg");
         else printToConsole("MATLAB-Lite opened.", "system-msg");
     }
 
@@ -2306,6 +2307,48 @@ fit();
     function autoSizeEditor() {
         cmdInput.style.height = "auto";
         cmdInput.style.height = `${Math.min(cmdInput.scrollHeight, 210)}px`;
+    }
+
+    function setupSidebarResizer() {
+        const handle = document.getElementById('sidebar-resizer');
+        let startX = 0, startWidth = 0, pointerId = null;
+        function setWidth(width) {
+            const next = Math.round(Math.max(220, Math.min(420, width)));
+            appShell.style.setProperty('--sidebar-width', next + 'px');
+            handle.setAttribute('aria-valuenow', String(next));
+        }
+        handle.addEventListener('pointerdown', event => {
+            if (isMobile() || event.button !== 0) return;
+            event.preventDefault();
+            startX = event.clientX;
+            startWidth = sidebar.getBoundingClientRect().width;
+            pointerId = event.pointerId;
+            handle.setPointerCapture(pointerId);
+            handle.focus();
+            appShell.classList.add('sidebar-resizing');
+        });
+        handle.addEventListener('pointermove', event => {
+            if (event.pointerId === pointerId) setWidth(startWidth + event.clientX - startX);
+        });
+        function finish() {
+            pointerId = null;
+            appShell.classList.remove('sidebar-resizing');
+        }
+        handle.addEventListener('pointerup', event => {
+            if (event.pointerId !== pointerId) return;
+            handle.releasePointerCapture(pointerId);
+            finish();
+        });
+        handle.addEventListener('pointercancel', finish);
+        handle.addEventListener('lostpointercapture', finish);
+        handle.addEventListener('keydown', event => {
+            if (isMobile()) return;
+            const width = sidebar.getBoundingClientRect().width;
+            const next = {ArrowLeft: width - 16, ArrowRight: width + 16, Home: 220, End: 420}[event.key];
+            if (next === undefined) return;
+            event.preventDefault();
+            setWidth(next);
+        });
     }
 
     function setupResizer() {

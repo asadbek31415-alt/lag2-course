@@ -57,11 +57,12 @@ button {
 
 .sidebar {
     width: var(--sidebar-width);
-    min-width: var(--sidebar-width);
-    max-width: 390px;
+    min-width: 220px;
+    flex-shrink: 0;
+    max-width: 420px;
     display: flex;
     flex-direction: column;
-    resize: horizontal;
+    resize: none;
     overflow: auto;
     border-right: 1px solid var(--border);
     background: rgba(15, 23, 42, 0.94);
@@ -79,17 +80,6 @@ button {
     align-items: center;
     gap: 12px;
     border-bottom: 1px solid var(--border);
-}
-
-.brand-mark {
-    width: 42px;
-    height: 42px;
-    display: grid;
-    place-items: center;
-    border-radius: 8px;
-    background: linear-gradient(135deg, #38bdf8, #22c55e);
-    color: #02111f;
-    font-size: 19px;
 }
 
 .brand-copy h1 {
@@ -1634,10 +1624,6 @@ button {
     }
 }
 
-/* Release branding and navigation. */
-.brand-mark { flex-shrink: 0; background: white; overflow: hidden; }
-.brand-mark img { width: 100%; height: 100%; object-fit: contain; }
-
 /* Back navigation and figures stay inside the course. */
 .course-back {display:inline-flex; flex-shrink:0; gap:6px; width:auto; padding:0 8px; font-size:.8rem;}
 .course-back:disabled {opacity:.35; cursor:default;}
@@ -1656,3 +1642,13 @@ button {
 .course-update a {color:var(--accent);}
 .course-update button {background:transparent; color:var(--text-mid); border:1px solid var(--border); border-radius:4px; padding:5px 8px; cursor:pointer;}
 @media(max-width:1024px) {.course-update {bottom:68px;}}
+
+/* Navigation can be resized anywhere along its right edge. */
+.sidebar-resizer {width:8px; flex:0 0 8px; align-self:stretch; cursor:col-resize; touch-action:none; background:transparent; position:relative; z-index:21;}
+.sidebar-resizer::after {content:''; position:absolute; inset:0 3px; background:var(--border);}
+.sidebar-resizer:hover::after, .sidebar-resizer:focus-visible::after, .app-shell.sidebar-resizing .sidebar-resizer::after {background:var(--accent);}
+.sidebar-resizer:focus-visible {outline:2px solid var(--accent); outline-offset:-2px;}
+.app-shell.sidebar-resizing {cursor:col-resize; user-select:none;}
+.app-shell.sidebar-resizing iframe {pointer-events:none;}
+.app-shell.sidebar-hidden .sidebar-resizer {display:none;}
+@media(max-width:1024px) {.sidebar-resizer {display:none;}}

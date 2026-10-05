@@ -10,7 +10,7 @@ Study linear algebra with interactive theory, visualizations, and a MATLAB-Lite 
 | **Offline on a computer** | [Download LAG2-Interactive-Course.zip](https://github.com/asadbek31415-alt/lag2-course/releases/latest/download/LAG2-Interactive-Course.zip) |
 | **Offline on Android (optional)** | [Download LAG2-Android.apk](https://github.com/asadbek31415-alt/lag2-course/releases/latest/download/LAG2-Android.apk) |
 
-Current course version: **v1.0.0**. [Changes and all downloads](https://github.com/asadbek31415-alt/lag2-course/releases/latest).
+Current course version: **v1.0.1**. [Changes and all downloads](https://github.com/asadbek31415-alt/lag2-course/releases/latest).
 
 For the computer ZIP, extract the whole folder, then open index.html. For Android, download the APK and allow installation from the browser when Android asks. The online link needs internet. The offline downloads include equations, calculations and local animations; YouTube and the exam channel need internet.
 
