@@ -48,3 +48,8 @@ context.engine.reset();
 assert.equal(context.engine.execute("f = @(x) x.^2; y = f(3)").filter(x => x.type === 'error').length, 0);
 assert.equal(context.engine.execute("title('A and B')").filter(x => x.type === 'error').length, 0);
 console.log('Undefined names, clearing variables, anonymous functions and plot labels checked.');
+
+const launchStyles=fs.readFileSync(path.join(root,'android/resources/values/styles.xml'),'utf8');
+assert.ok(launchStyles.includes('<item name="windowSplashScreenAnimatedIcon">@android:color/transparent</item>'));
+assert.ok(!launchStyles.includes('@drawable/splash'));
+console.log('Android launch theme hides startup logos and keeps the launcher icon.');
