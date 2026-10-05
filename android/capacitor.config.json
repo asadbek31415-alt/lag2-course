@@ -1,0 +1,8 @@
+{
+  "appId": "uz.turinprepnik.lag2",
+  "appName": "LAG2 Course",
+  "webDir": "../site",
+  "server": {
+    "androidScheme": "https"
+  }
+}

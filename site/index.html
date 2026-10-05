@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAG2 | Interactive Linear Algebra Course</title>
+
+    <script>window.MathJax = {tex:{inlineMath:[["$","$"],["\\(","\\)"]]}, startup:{ready(){MathJax.startup.defaultReady(); MathJax.startup.promise.then(()=>document.dispatchEvent(new Event("math-ready")));}}};</script>
+    <script id="MathJax-script" defer src="vendor/mathjax/tex-mml-chtml.js"></script>
+    <script src="vendor/math.js"></script>
+    <link rel="stylesheet" href="vendor/fontawesome/css/all.min.css">
+
+
+    <link rel="icon" href="logo.jpg">
+    <meta name="theme-color" content="#0b1020">
+    <meta name="description" content="LAG2 interactive linear algebra course with theory, visualizations and an offline MATLAB-Lite lab.">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app-shell" id="app-shell">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <button class="icon-btn" id="collapse-sidebar" title="Hide navigation" aria-label="Hide navigation">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="brand-mark">
+                    <img src="logo.jpg" alt="LAG2 logo" width="42" height="42">
+                </div>
+                <div class="brand-copy">
+                    <h1>LAG2 Course</h1>
+                    <span>Linear Algebra · <span class="course-version">v0.1.0</span></span>
+                </div>
+            </div>
+
+            <div class="sidebar-search" id="sidebar-search-wrap">
+                <i class="fas fa-search"></i>
+                <input type="search" id="chapter-search" placeholder="Search topics">
+            </div>
+
+            <nav class="chapter-nav" id="chapter-list" aria-label="Course navigation"></nav>
+
+            <div class="sidebar-footer">
+                <span class="status-dot"></span>
+                MATLAB-Lite ready
+            </div>
+        </aside>
+
+        <button class="restore-tab restore-sidebar hidden" id="restore-sidebar" aria-label="Show navigation">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <main class="workspace">
+            <section class="theory-pane pane" id="theory-pane">
+                <div class="pane-toolbar theory-toolbar">
+                    <div class="breadcrumb" id="breadcrumb">Welcome</div>
+                    <div class="pane-actions">
+                        <button class="icon-btn" id="hide-theory" title="Hide theory" aria-label="Hide theory">
+                            <i class="fas fa-book-open"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <article class="theory-scroll" id="theory-scroll">
+                    <div class="content-wrapper">
+                        <header class="topic-header">
+                            <p class="topic-kicker" id="topic-kicker">Interactive course</p>
+                            <h2 id="chapter-title">Welcome</h2>
+                        </header>
+                        <div id="release-notice" role="status" hidden></div>
+                        <div id="theory-content"></div>
+                    </div>
+                </article>
+            </section>
+
+            <div class="resizer" id="resizer" role="separator" aria-orientation="vertical" aria-label="Resize theory and MATLAB panes"></div>
+
+            <section class="lab-pane pane" id="lab-pane">
+                <div class="matlab-window">
+                    <header class="matlab-toolbar">
+                        <div class="matlab-title">MATLAB-Lite</div>
+                        <div class="matlab-actions">
+                            <button class="tool-btn primary" id="run-command" title="Run command">
+                                <i class="fas fa-play"></i>
+                                <span>Run</span>
+                            </button>
+                            <button class="tool-btn" id="clear-console" title="Clear Command Window (clc)">
+                                <i class="fas fa-eraser"></i>
+                                <span>Command</span>
+                            </button>
+                            <button class="tool-btn" id="clear-workspace" title="Clear Workspace (clearvars)">
+                                <i class="fas fa-broom"></i>
+                                <span>Workspace</span>
+                            </button>
+                            <button class="tool-btn danger" id="reset-matlab" title="Reset MATLAB">
+                                <i class="fas fa-power-off"></i>
+                                <span>Reset</span>
+                            </button>
+                            <button class="icon-btn" id="toggle-variables" title="Show or hide Workspace" aria-label="Show or hide Workspace">
+                                <i class="fas fa-table"></i>
+                            </button>
+                            <button class="icon-btn" id="hide-lab" title="Hide MATLAB" aria-label="Hide MATLAB">
+                                <i class="fas fa-terminal"></i>
+                            </button>
+                        </div>
+                    </header>
+
+                    <div class="lab-body">
+                        <section class="command-area" aria-label="Command window">
+                            <div id="console-output" class="console-output" aria-live="polite">
+                                <div class="system-msg">MATLAB-Lite opened. Type commands below and press Enter.</div>
+                            </div>
+
+                            <div class="editor-wrap">
+                                <label class="prompt" for="cmd-input">&gt;&gt;</label>
+                                <textarea id="cmd-input" spellcheck="false" autocomplete="off" rows="3" placeholder="Type MATLAB code here. Enter runs, Shift+Enter adds a new line."></textarea>
+                                <button class="editor-run" id="editor-run" title="Run">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </div>
+                        </section>
+
+                        <aside class="variables-panel" id="variables-panel" aria-label="Workspace variables">
+                            <div class="variables-header">
+                                <h3>Workspace</h3>
+                                <button class="icon-btn" id="close-variables" aria-label="Hide variables">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="variables-table" id="variables-table">
+                                <div class="empty-state">No variables yet.</div>
+                            </div>
+                        </aside>
+                    </div>
+                </div>
+            </section>
+
+            <button class="restore-tab restore-theory hidden" id="restore-theory">
+                <i class="fas fa-bars"></i>
+            </button>
+            <button class="restore-tab restore-lab hidden" id="restore-lab">
+                <i class="fas fa-bars"></i>
+            </button>
+        </main>
+
+        <nav class="mobile-tabs" id="mobile-tabs" aria-label="Mobile view tabs">
+            <button class="mobile-tab" data-mobile-view="nav">
+                <i class="fas fa-list"></i>
+                <span>Nav</span>
+            </button>
+            <button class="mobile-tab active" data-mobile-view="theory">
+                <i class="fas fa-book-open"></i>
+                <span>Theory</span>
+            </button>
+            <button class="mobile-tab" data-mobile-view="lab">
+                <i class="fas fa-terminal"></i>
+                <span>MATLAB</span>
+            </button>
+        </nav>
+    </div>
+
+    <script src="js/release.js"></script>
+    <script src="js/engine.js"></script>
+    <script src="js/content.js"></script>
+    <script src="js/animations.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

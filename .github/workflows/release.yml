@@ -1,0 +1,92 @@
+name: Publish LAG2 course
+on:
+  push:
+    tags: ['v*.*.*']
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: lag2-release
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: android/package-lock.json
+      - name: Validate release and offline course
+        run: node tools/check-release.cjs .
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - name: Install Android platform
+        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+      - name: Install Android dependencies
+        working-directory: android
+        run: npm ci
+      - name: Generate Android project
+        working-directory: android
+        run: npx cap add android
+      - name: Prepare signing key
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          test -n "$ANDROID_KEYSTORE_BASE64"
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/lag2.p12"
+      - name: Build signed offline APK
+        working-directory: android
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/lag2.p12
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          node configure.cjs
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+          cp app/build/outputs/apk/release/app-release.apk "$GITHUB_WORKSPACE/LAG2-Android.apk"
+      - name: Verify APK signature and bundled version
+        run: |
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose LAG2-Android.apk
+          unzip -p LAG2-Android.apk assets/public/version.json | diff - site/version.json
+          unzip -l LAG2-Android.apk | grep 'assets/public/vendor/math.js'
+          unzip -l LAG2-Android.apk | grep 'assets/public/vendor/mathjax/tex-mml-chtml.js'
+      - name: Package offline computer ZIP
+        run: |
+          mkdir -p dist/LAG2-Interactive-Course
+          cp -R site/. dist/LAG2-Interactive-Course/
+          cd dist
+          zip -q -r "$GITHUB_WORKSPACE/LAG2-Interactive-Course.zip" LAG2-Interactive-Course
+      - name: Stage matching downloads
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" --json isDraft --jq .isDraft > "$RUNNER_TEMP/release-status" 2>/dev/null; then
+            test "$(cat "$RUNNER_TEMP/release-status")" = true
+            gh release upload "$GITHUB_REF_NAME" LAG2-Interactive-Course.zip LAG2-Android.apk --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" LAG2-Interactive-Course.zip LAG2-Android.apk --draft --title "LAG2 Interactive Course $GITHUB_REF_NAME" --notes-file RELEASE_NOTES.md
+          fi
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - name: Publish website
+        id: deployment
+        uses: actions/deploy-pages@v4
+      - name: Publish matching downloads
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release edit "$GITHUB_REF_NAME" --draft=false --latest
