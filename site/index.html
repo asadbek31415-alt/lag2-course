@@ -14,9 +14,12 @@
     <link rel="icon" href="logo.jpg">
     <meta name="theme-color" content="#0b1020">
     <meta name="description" content="LAG2 interactive linear algebra course with theory, visualizations and an offline MATLAB-Lite lab.">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=1.0.0">
 </head>
 <body>
+    <aside class="course-update" id="course-update" role="status" hidden>
+        <span data-update-message></span><a data-update-link rel="noopener"></a><button type="button" data-update-dismiss aria-label="Dismiss update notice">Dismiss</button>
+    </aside>
     <div class="app-shell" id="app-shell">
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
@@ -28,7 +31,7 @@
                 </div>
                 <div class="brand-copy">
                     <h1>LAG2 Course</h1>
-                    <span>Linear Algebra · <span class="course-version">v0.1.0</span></span>
+                    <span>Linear Algebra · <span class="course-version">v1.0.0</span></span>
                 </div>
             </div>
 
@@ -42,6 +45,7 @@
             <div class="sidebar-footer">
                 <span class="status-dot"></span>
                 MATLAB-Lite ready
+                <a class="course-downloads" href="https://github.com/asadbek31415-alt/lag2-course/releases/latest" target="_blank" rel="noopener">Downloads</a>
             </div>
         </aside>
 
@@ -52,6 +56,7 @@
         <main class="workspace">
             <section class="theory-pane pane" id="theory-pane">
                 <div class="pane-toolbar theory-toolbar">
+                    <button class="course-back icon-btn" id="course-back" type="button" title="Back to previous view" aria-label="Back to previous view" disabled><i class="fas fa-arrow-left"></i><span>Back</span></button>
                     <div class="breadcrumb" id="breadcrumb">Welcome</div>
                     <div class="pane-actions">
                         <button class="icon-btn" id="hide-theory" title="Hide theory" aria-label="Hide theory">
@@ -66,7 +71,6 @@
                             <p class="topic-kicker" id="topic-kicker">Interactive course</p>
                             <h2 id="chapter-title">Welcome</h2>
                         </header>
-                        <div id="release-notice" role="status" hidden></div>
                         <div id="theory-content"></div>
                     </div>
                 </article>
@@ -83,20 +87,20 @@
                                 <i class="fas fa-play"></i>
                                 <span>Run</span>
                             </button>
-                            <button class="tool-btn" id="clear-console" title="Clear Command Window (clc)">
+                            <button class="tool-btn" id="clear-console" title="Clear displayed commands and output; keep variables (clc)" aria-label="Clear output">
                                 <i class="fas fa-eraser"></i>
-                                <span>Command</span>
+                                <span>Clear output</span>
                             </button>
-                            <button class="tool-btn" id="clear-workspace" title="Clear Workspace (clearvars)">
+                            <button class="tool-btn" id="clear-workspace" title="Delete all variables; keep command output (clearvars)" aria-label="Clear variables">
                                 <i class="fas fa-broom"></i>
-                                <span>Workspace</span>
+                                <span>Clear variables</span>
                             </button>
-                            <button class="tool-btn danger" id="reset-matlab" title="Reset MATLAB">
+                            <button class="tool-btn danger" id="reset-matlab" title="Reset output, variables and plots" aria-label="Reset MATLAB">
                                 <i class="fas fa-power-off"></i>
                                 <span>Reset</span>
                             </button>
-                            <button class="icon-btn" id="toggle-variables" title="Show or hide Workspace" aria-label="Show or hide Workspace">
-                                <i class="fas fa-table"></i>
+                            <button class="tool-btn" id="toggle-variables" title="Show or hide variables" aria-label="Show or hide variables">
+                                <i class="fas fa-table"></i><span>Variables</span>
                             </button>
                             <button class="icon-btn" id="hide-lab" title="Hide MATLAB" aria-label="Hide MATLAB">
                                 <i class="fas fa-terminal"></i>
@@ -158,10 +162,15 @@
         </nav>
     </div>
 
-    <script src="js/release.js"></script>
-    <script src="js/engine.js"></script>
-    <script src="js/content.js"></script>
-    <script src="js/animations.js"></script>
-    <script src="js/main.js"></script>
+    <dialog class="figure-dialog" id="figure-dialog" aria-labelledby="figure-title">
+        <header class="figure-dialog-header"><h2 id="figure-title">Figure</h2><button type="button" id="close-figure" aria-label="Close plot">Close <span aria-hidden="true">×</span></button></header>
+        <iframe id="figure-frame" title="MATLAB plot"></iframe>
+    </dialog>
+
+    <script src="js/release.js?v=1.0.0"></script>
+    <script src="js/engine.js?v=1.0.0"></script>
+    <script src="js/content.js?v=1.0.0"></script>
+    <script src="js/animations.js?v=1.0.0"></script>
+    <script src="js/main.js?v=1.0.0"></script>
 </body>
 </html>

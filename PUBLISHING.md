@@ -1,6 +1,6 @@
 # Publishing LAG2
 
-Edit lag2-course-app in the authoring folder. Set one higher semantic version in version.json, js/release.js, the welcome text, distribution/README.md and distribution/android/package.json; regenerate the Android lockfile and update RELEASE_NOTES.md.
+Edit lag2-course-app in the authoring folder. Set one higher semantic version in version.json, js/release.js, distribution/README.md and distribution/android/package.json; regenerate the Android lockfile and update RELEASE_NOTES.md.
 
 Run node tools/prepare-release.cjs and node tools/check-release.cjs distribution/public. Review only the student export. Commit and push it from distribution/public to the existing public repository. Push the matching new vMAJOR.MINOR.PATCH tag. A main push alone does not publish.
 

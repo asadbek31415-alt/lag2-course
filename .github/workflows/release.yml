@@ -24,7 +24,9 @@ jobs:
           cache: npm
           cache-dependency-path: android/package-lock.json
       - name: Validate release and offline course
-        run: node tools/check-release.cjs .
+        run: |
+          node tools/check-release.cjs .
+          node tools/check-updates.cjs .
       - uses: actions/setup-java@v4
         with:
           distribution: temurin

@@ -10,7 +10,7 @@ Study linear algebra with interactive theory, visualizations, and a MATLAB-Lite 
 | **Offline on a computer** | [Download LAG2-Interactive-Course.zip](https://github.com/asadbek31415-alt/lag2-course/releases/latest/download/LAG2-Interactive-Course.zip) |
 | **Offline on Android (optional)** | [Download LAG2-Android.apk](https://github.com/asadbek31415-alt/lag2-course/releases/latest/download/LAG2-Android.apk) |
 
-Current course version: **v0.1.0**. [Changes and all downloads](https://github.com/asadbek31415-alt/lag2-course/releases/latest).
+Current course version: **v1.0.0**. [Changes and all downloads](https://github.com/asadbek31415-alt/lag2-course/releases/latest).
 
 For the computer ZIP, extract the whole folder, then open index.html. For Android, download the APK and allow installation from the browser when Android asks. The online link needs internet. The offline downloads include equations, calculations and local animations; YouTube and the exam channel need internet.
 
@@ -20,7 +20,7 @@ MATLAB-Lite implements a course-focused subset of MATLAB; it is not the official
 
 ## Updates
 
-The online link stays the same. Refresh after a release. Downloaded ZIPs and apps need a new download; the Android package preserves its app ID and signing key for updates. Returning website visitors see a compact version notice. GitHub users can choose Watch → Custom → Releases for release notifications.
+The online link stays the same. Refresh after a release. Downloaded ZIPs and apps need a new download; the Android package preserves its app ID and signing key for updates. The website and Android app check for newer published releases when opened or resumed with internet. A compact notice links to the new website or Android download. Checks run only while the course is open; offline study continues normally. GitHub users can choose Watch → Custom → Releases for release notifications.
 
 ## Publishing
 

@@ -15,9 +15,6 @@ const CourseContent = {
             <section id="start">
                 <div class="how-to-card">
                     <h2>Read on the left. Experiment on the right.</h2>
-                    <p><strong>LAG2 Interactive Course · v0.1.0</strong></p>
-                    <div class="release-links"><a href="https://github.com/asadbek31415-alt/lag2-course/releases/latest/download/LAG2-Interactive-Course.zip" target="_blank" rel="noopener">Computer offline ZIP</a><a href="https://github.com/asadbek31415-alt/lag2-course/releases/latest/download/LAG2-Android.apk" target="_blank" rel="noopener">Android offline app</a><a href="https://github.com/asadbek31415-alt/lag2-course/releases/latest" target="_blank" rel="noopener">Release notes</a></div>
-                    <p>Theory, calculations and course animations work offline in the ZIP and Android app. The exam channel and optional YouTube video need internet. On a phone, use the Theory, MATLAB and Nav tabs below.</p>
                     <p>This reference book is for fast review while solving LAG2 exam questions. Read one chapter, try the MATLAB-Lite blocks, then leave this file and solve the matching pinned questions in <a href="https://t.me/Lag2_for_exam" target="_blank" rel="noopener">the exam channel</a>.</p>
                     <p>The left pane is theory. The right pane is a small MATLAB session with a Command Window and Workspace.</p>
                 </div>
@@ -26,7 +23,7 @@ const CourseContent = {
             <section id="using-matlab">
                 <h2>Using MATLAB-Lite</h2>
                 <p>Press <strong>Load in MATLAB</strong> beside a code block, then press <strong>Run</strong> or <kbd>Enter</kbd>. Use <kbd>Shift</kbd> + <kbd>Enter</kbd> for several commands at once.</p>
-                <p>"<code>ans</code>" stores the last unnamed result. A semicolon suppresses printed output but still computes the value. <code>whos</code> lists variables, the Workspace button shows their values, <code>clc</code> clears the Command Window, <code>clearvars</code> clears variables, and <code>clear all</code> resets the session.</p>
+                <p>"<code>ans</code>" stores the last unnamed result. A semicolon suppresses printed output but still computes the value. <code>whos</code> lists variables, the Variables button shows their values, <code>clc</code> clears the Command Window, <code>clearvars</code> clears variables, and <code>clear all</code> resets the session.</p>
                 <div class="matlab-block">
                     <pre>A = [1 2; 3 4]
 B = [10 20; 30 40]
@@ -1274,7 +1271,7 @@ eig(A)</pre>
                     <p>The nonzero diagonal values in <code>S</code> count the independent directions of the matrix. In other words, the rank of \\(A\\) is the number of nonzero singular values.</p>
                     <p>For a visual explanation, this video is especially useful:</p>
                     <div class="video-embed">
-                        <p>Optional video explanation (internet required): <a href="https://www.youtube.com/watch?v=vSczTbgc8Rc" target="_blank" rel="noopener">Watch on YouTube</a>.</p><iframe src="https://www.youtube-nocookie.com/embed/vSczTbgc8Rc" title="SVD visual explanation" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                        <iframe src="https://www.youtube-nocookie.com/embed/vSczTbgc8Rc" title="SVD visual explanation" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
                     </div>
                     <div class="matlab-block">
                         <pre>A = [1 2; 3 4; 5 6]

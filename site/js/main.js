@@ -38,17 +38,67 @@ document.addEventListener("DOMContentLoaded", () => {
     let commandHistory = [];
     let historyIndex = -1;
     let scrollObserver = null;
-    const figureWindows = new Map();
+    const backButton = document.getElementById('course-back');
+    const figureDialog = document.getElementById('figure-dialog');
+    const figureFrame = document.getElementById('figure-frame');
+    const figureTitle = document.getElementById('figure-title');
+    let activeFigureId = null;
+    let mobileView = 'theory';
     const figureData = new Map();
 
     function init() {
         renderNavigation();
         bindEvents();
         setupResizer();
-        loadChapter("dashboard");
-        updateMobileView("theory");
+        const parts = location.hash.slice(1).split('/');
+        const chapter = findChapter(parts[0]) || CourseContent.dashboard;
+        const section = findSection(chapter, parts[1]);
+        const initial = history.state?.lag2 ? {...history.state, figureId: null} : {lag2: true, index: 0, chapterId: chapter.id, sectionId: section.id, view: 'theory', figureId: null, scrollTop: 0};
+        history.replaceState(initial, '', routeUrl(initial));
+        loadChapter(initial.chapterId, initial.sectionId, false);
+        updateMobileView(initial.view, false);
         syncPaneState();
         syncResponsiveControls();
+        syncBackButton();
+    }
+
+    function routeUrl(route) {
+        return '#' + route.chapterId + '/' + route.sectionId;
+    }
+
+    function syncBackButton() {
+        backButton.disabled = !(history.state?.lag2 && history.state.index > 0);
+    }
+
+    function pushRoute(changes) {
+        const previous = history.state;
+        if (!previous?.lag2) return;
+        const next = {...previous, ...changes};
+        const same = ['chapterId', 'sectionId', 'view', 'figureId'].every(key => previous[key] === next[key]);
+        if (same) return;
+        history.replaceState({...previous, scrollTop: theoryScroll.scrollTop}, '', routeUrl(previous));
+        if (previous.view === 'nav' && changes.chapterId && changes.view === 'theory') {
+            next.scrollTop = changes.scrollTop ?? 0;
+            history.replaceState(next, '', routeUrl(next));
+            syncBackButton();
+            return;
+        }
+        next.index = previous.index + 1;
+        next.scrollTop = changes.scrollTop ?? 0;
+        history.pushState(next, '', routeUrl(next));
+        syncBackButton();
+    }
+
+    function restoreRoute(route) {
+        if (!route?.lag2) return;
+        const chapter = findChapter(route.chapterId) || CourseContent.dashboard;
+        if (currentChapter.id !== chapter.id) loadChapter(chapter.id, route.sectionId, false);
+        else scrollToSection(route.sectionId, false, false);
+        updateMobileView(route.view || 'theory', false);
+        requestAnimationFrame(() => theoryScroll.scrollTo({top: route.scrollTop || 0, behavior: 'auto'}));
+        if (route.figureId && figureData.has(route.figureId)) showFigure(route.figureId, false);
+        else hideFigure();
+        syncBackButton();
     }
 
     function allChapters() {
@@ -107,8 +157,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
                 expandedChapters.add(chapter.id);
-                currentSubtopic = chapter.sections[0]?.id || "start";
-                theoryScroll.scrollTo({ top: 0, behavior: "smooth" });
+                scrollToSection(chapter.sections[0]?.id || "start");
                 updateBreadcrumb();
                 renderNavigation(chapterSearch.value);
                 closeMobileNavigation();
@@ -186,12 +235,14 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    function loadChapter(id, sectionId = null) {
+    function loadChapter(id, sectionId = null, addHistory = true) {
         const chapter = findChapter(id);
         if (!chapter) return;
 
+        const targetSection = findSection(chapter, sectionId).id;
+        if (addHistory) pushRoute({chapterId: id, sectionId: targetSection, view: 'theory', figureId: null});
         currentChapter = chapter;
-        currentSubtopic = sectionId || chapter.sections[0]?.id || "start";
+        currentSubtopic = targetSection;
         topicKicker.textContent = chapter.kicker || "Interactive course";
         chapterTitle.textContent = chapter.title;
         theoryContent.innerHTML = chapter.html;
@@ -203,7 +254,7 @@ document.addEventListener("DOMContentLoaded", () => {
         updateBreadcrumb();
 
         requestAnimationFrame(() => {
-            if (sectionId) scrollToSection(currentSubtopic, false);
+            if (sectionId) scrollToSection(currentSubtopic, false, false);
             else theoryScroll.scrollTo({ top: 0, behavior: "auto" });
             typesetMath();
         });
@@ -1694,9 +1745,10 @@ fit();
         sections.forEach(section => scrollObserver.observe(section));
     }
 
-    function scrollToSection(sectionId, smooth = true) {
+    function scrollToSection(sectionId, smooth = true, addHistory = true) {
         const target = document.getElementById(sectionId);
         if (!target) return;
+        if (addHistory) pushRoute({chapterId: currentChapter.id, sectionId, view: 'theory', figureId: null});
         currentSubtopic = sectionId;
         expandDeepDive(sectionId);
         target.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "start" });
@@ -1727,6 +1779,21 @@ fit();
     }
 
     function bindEvents() {
+        window.LAG2Back = () => {
+            if (figureDialog.open) {closeFigure(); return true;}
+            if (history.state?.lag2 && history.state.index > 0) {history.back(); return true;}
+            if (isMobile() && mobileView !== 'theory') {updateMobileView('theory', false); return true;}
+            return false;
+        };
+        backButton.addEventListener('click', () => history.back());
+        window.addEventListener('popstate', event => restoreRoute(event.state));
+        document.getElementById('close-figure').addEventListener('click', closeFigure);
+        figureDialog.addEventListener('cancel', event => {event.preventDefault(); closeFigure();});
+        figureFrame.addEventListener('load', () => {
+            if (activeFigureId === null) return;
+            drawDetachedFigure(figureFrame.contentWindow, figureData.get(activeFigureId));
+            figureFrame.contentWindow.addEventListener('keydown', event => {if (event.key === 'Escape') closeFigure();});
+        });
         chapterSearch.addEventListener("input", () => renderNavigation(chapterSearch.value));
 
         collapseSidebar.addEventListener("click", () => {
@@ -1958,249 +2025,31 @@ fit();
 
         figureData.set(figureId, nextFigure);
 
-        let figureWindow = figureWindows.get(figureId);
-        if (!figureWindow || figureWindow.closed) {
-            figureWindow = window.open("", `matlabFigure${figureId}`, "width=820,height=620,resizable=yes,scrollbars=no");
-            figureWindows.set(figureId, figureWindow);
-        } else {
-            figureWindow.focus();
+        showFigure(figureId);
+    }
+
+    function showFigure(figureId, addHistory = true) {
+        const figure = figureData.get(figureId);
+        if (!figure) return;
+        if (addHistory) {
+            if (!figureDialog.open) pushRoute({figureId, scrollTop: theoryScroll.scrollTop});
+            else history.replaceState({...history.state, figureId}, '', location.href);
         }
+        activeFigureId = figureId;
+        figureTitle.textContent = figure.title || 'Figure';
+        if (!figureDialog.open) figureDialog.showModal();
+        figureFrame.srcdoc = '<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:white}canvas{display:block;width:100%;height:100%}</style></head><body><canvas id="figure-canvas"></canvas></body></html>';
+        document.getElementById('close-figure').focus();
+    }
 
-        if (!figureWindow) {
-            printToConsole("Unable to open figure window. Please allow pop-ups for this page.", "error");
-            return;
-        }
+    function hideFigure() {
+        activeFigureId = null;
+        if (figureDialog.open) figureDialog.close();
+    }
 
-        const payload = JSON.stringify(nextFigure).replace(/</g, "\\u003c");
-        figureWindow.document.open();
-        figureWindow.document.write(`<!doctype html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>${escapeHtml(nextFigure.title || "Figure")}</title>
-    <style>
-        * { box-sizing: border-box; }
-        html, body { width: 100%; height: 100%; margin: 0; }
-        body {
-            display: flex;
-            flex-direction: column;
-            background: #f3f4f6;
-            color: #111827;
-            font-family: Arial, Helvetica, sans-serif;
-            overflow: hidden;
-        }
-        header {
-            height: 42px;
-            display: flex;
-            align-items: center;
-            padding: 0 14px;
-            border-bottom: 1px solid #d1d5db;
-            background: #ffffff;
-            font-size: 13px;
-            font-weight: 600;
-        }
-        canvas {
-            flex: 1;
-            width: 100%;
-            height: calc(100% - 42px);
-            background: #ffffff;
-        }
-    </style>
-</head>
-<body>
-    <header>${escapeHtml(nextFigure.title || "Figure")}</header>
-    <canvas id="figure-canvas"></canvas>
-    <script>
-        const figure = ${payload};
-        const canvas = document.getElementById("figure-canvas");
-        const ctx = canvas.getContext("2d");
-
-        function resize() {
-            const rect = canvas.getBoundingClientRect();
-            const dpr = window.devicePixelRatio || 1;
-            canvas.width = Math.max(1, Math.floor(rect.width * dpr));
-            canvas.height = Math.max(1, Math.floor(rect.height * dpr));
-            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-            draw();
-        }
-
-        function draw() {
-            const width = canvas.clientWidth;
-            const height = canvas.clientHeight;
-            ctx.clearRect(0, 0, width, height);
-            if (figure.kind === "empty") drawEmpty(width, height);
-            else if (figure.kind === "surf") drawSurface(width, height);
-            else drawPlot(width, height);
-        }
-
-        function finiteExtent(values) {
-            const finite = values.filter(Number.isFinite);
-            let min = Math.min(...finite);
-            let max = Math.max(...finite);
-            if (!Number.isFinite(min) || !Number.isFinite(max)) {
-                min = 0;
-                max = 1;
-            }
-            if (min === max) {
-                min -= 1;
-                max += 1;
-            }
-            return { min, max };
-        }
-
-        function tickValues(extent, count) {
-            return Array.from({ length: count }, (_, index) => extent.min + (index / (count - 1)) * (extent.max - extent.min));
-        }
-
-        function drawPlot(width, height) {
-            const margin = { left: 58, right: 24, top: 28, bottom: 46 };
-            const series = figure.series || [{ x: figure.x || [], y: figure.y || [], style: {} }];
-            const allX = series.flatMap(item => item.x || []);
-            const allY = series.flatMap(item => item.y || []);
-            const xExt = finiteExtent(allX);
-            const yExt = finiteExtent(allY);
-            const xTicks = tickValues(xExt, 5);
-            const yTicks = tickValues(yExt, 5);
-            const plotWidth = width - margin.left - margin.right;
-            const plotHeight = height - margin.top - margin.bottom;
-            const sx = value => margin.left + ((value - xExt.min) / (xExt.max - xExt.min)) * plotWidth;
-            const sy = value => margin.top + plotHeight - ((value - yExt.min) / (yExt.max - yExt.min)) * plotHeight;
-
-            ctx.strokeStyle = "#e5e7eb";
-            ctx.lineWidth = 1;
-            for (let i = 0; i <= 5; i++) {
-                const gx = margin.left + (i / 5) * plotWidth;
-                const gy = margin.top + (i / 5) * plotHeight;
-                ctx.beginPath();
-                ctx.moveTo(gx, margin.top);
-                ctx.lineTo(gx, margin.top + plotHeight);
-                ctx.moveTo(margin.left, gy);
-                ctx.lineTo(margin.left + plotWidth, gy);
-                ctx.stroke();
-            }
-
-            ctx.strokeStyle = "#111827";
-            ctx.beginPath();
-            ctx.rect(margin.left, margin.top, plotWidth, plotHeight);
-            ctx.stroke();
-
-            series.forEach(item => {
-                const x = item.x || [];
-                const y = item.y || [];
-                const style = item.style || {};
-                ctx.strokeStyle = style.color || "#2563eb";
-                ctx.fillStyle = style.color || "#2563eb";
-                ctx.lineWidth = 2;
-                ctx.setLineDash(style.lineDash || []);
-                ctx.beginPath();
-                x.forEach((value, index) => {
-                    const px = sx(value);
-                    const py = sy(y[index]);
-                    if (index === 0) ctx.moveTo(px, py);
-                    else ctx.lineTo(px, py);
-                });
-                ctx.stroke();
-                ctx.setLineDash([]);
-                if (style.marker) {
-                    x.forEach((value, index) => drawMarker(sx(value), sy(y[index]), style.marker));
-                }
-            });
-
-            ctx.fillStyle = "#111827";
-            ctx.font = "12px Arial";
-            ctx.textAlign = "center";
-            xTicks.forEach(value => ctx.fillText(formatTick(value), sx(value), height - 18));
-            ctx.textAlign = "right";
-            yTicks.forEach(value => ctx.fillText(formatTick(value), margin.left - 10, sy(value) + 4));
-            ctx.textAlign = "start";
-        }
-
-        function drawMarker(x, y, marker) {
-            ctx.beginPath();
-            if (marker === "o") {
-                ctx.arc(x, y, 4, 0, Math.PI * 2);
-                ctx.stroke();
-            } else if (marker === "." || marker === "*") {
-                ctx.arc(x, y, marker === "." ? 2.5 : 4, 0, Math.PI * 2);
-                ctx.fill();
-            } else {
-                ctx.moveTo(x - 4, y - 4);
-                ctx.lineTo(x + 4, y + 4);
-                ctx.moveTo(x + 4, y - 4);
-                ctx.lineTo(x - 4, y + 4);
-                ctx.stroke();
-            }
-        }
-
-        function drawEmpty(width, height) {
-            ctx.fillStyle = "#6b7280";
-            ctx.font = "14px Arial";
-            ctx.textAlign = "center";
-            ctx.fillText("Empty figure", width / 2, height / 2);
-            ctx.textAlign = "start";
-        }
-
-        function drawSurface(width, height) {
-            const z = figure.z;
-            const rows = z.length;
-            const cols = z[0].length;
-            const flatZ = z.flat();
-            const zExt = finiteExtent(flatZ);
-            const scale = Math.min(width / Math.max(cols + rows, 2), height / Math.max(cols + rows, 2)) * 1.12;
-            const zScale = height * 0.32 / (zExt.max - zExt.min);
-            const cx = width * 0.5;
-            const cy = height * 0.22;
-
-            function project(row, col, value) {
-                return {
-                    x: cx + (col - row) * scale,
-                    y: cy + (col + row) * scale * 0.48 - (value - zExt.min) * zScale
-                };
-            }
-
-            for (let row = rows - 2; row >= 0; row--) {
-                for (let col = 0; col < cols - 1; col++) {
-                    const p1 = project(row, col, z[row][col]);
-                    const p2 = project(row, col + 1, z[row][col + 1]);
-                    const p3 = project(row + 1, col + 1, z[row + 1][col + 1]);
-                    const p4 = project(row + 1, col, z[row + 1][col]);
-                    const avg = (z[row][col] + z[row][col + 1] + z[row + 1][col + 1] + z[row + 1][col]) / 4;
-                    const t = (avg - zExt.min) / (zExt.max - zExt.min);
-                    ctx.fillStyle = colorMap(t);
-                    ctx.strokeStyle = "rgba(17, 24, 39, 0.32)";
-                    ctx.lineWidth = 1;
-                    ctx.beginPath();
-                    ctx.moveTo(p1.x, p1.y);
-                    ctx.lineTo(p2.x, p2.y);
-                    ctx.lineTo(p3.x, p3.y);
-                    ctx.lineTo(p4.x, p4.y);
-                    ctx.closePath();
-                    ctx.fill();
-                    ctx.stroke();
-                }
-            }
-        }
-
-        function colorMap(t) {
-            const clamped = Math.max(0, Math.min(1, t));
-            const r = Math.round(35 + clamped * 220);
-            const g = Math.round(90 + Math.sin(clamped * Math.PI) * 120);
-            const b = Math.round(210 - clamped * 160);
-            return "rgb(" + r + "," + g + "," + b + ")";
-        }
-
-        function formatTick(value) {
-            return Number.isFinite(value) ? Number(value.toPrecision(4)).toString() : "";
-        }
-
-        window.addEventListener("resize", resize);
-        resize();
-    </script>
-</body>
-</html>`);
-        figureWindow.document.close();
-        window.setTimeout(() => drawDetachedFigure(figureWindow, nextFigure), 0);
+    function closeFigure() {
+        hideFigure();
+        if (history.state?.figureId) history.back();
     }
 
     function drawDetachedFigure(figureWindow, figure) {
@@ -2430,6 +2279,7 @@ fit();
 
     function resetMatlab(printMessage = true) {
         MatlabEngine.reset();
+        if (figureDialog.open) closeFigure();
         figureData.clear();
         clearConsole();
         updateVariables();
@@ -2507,8 +2357,10 @@ fit();
         }
     }
 
-    function updateMobileView(view) {
+    function updateMobileView(view, addHistory = true) {
+        mobileView = view;
         if (!isMobile()) return;
+        if (addHistory) pushRoute({view, figureId: null, scrollTop: theoryScroll.scrollTop});
         theoryPane.classList.toggle("mobile-hidden", view !== "theory");
         labPane.classList.toggle("mobile-hidden", view !== "lab");
         sidebar.classList.toggle("mobile-open", view === "nav");
@@ -2521,11 +2373,12 @@ fit();
     function closeMobileNavigation() {
         if (!isMobile()) return;
         sidebar.classList.remove("mobile-open", "mobile-view");
-        updateMobileView("theory");
+        updateMobileView("theory", false);
     }
 
     function syncResponsiveControls() {
         if (isMobile()) {
+            updateMobileView(mobileView, false);
             sidebar.classList.remove("hidden");
             restoreSidebar.classList.remove("hidden");
             variablesPanel.classList.add("hidden");

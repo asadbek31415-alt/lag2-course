@@ -1,7 +1,9 @@
-LAG2 Interactive Course v0.1.0 — first public release.
+LAG2 Interactive Course v1.0.0
 
-- Existing five-chapter course with interactive mathematics, animations and MATLAB-Lite.
-- Matching online website, offline computer ZIP and signed Android app.
-- Course logo, clear download links and version labels.
-- Local math and icon libraries for offline theory and calculations.
-- Optional YouTube explanation and exam channel links require internet.
+- Restore the original welcome page and put downloads outside lesson content.
+- Browser Back, visible course Back and Android Back return to the previous course view.
+- Plot figures open inside the course with a visible Close button; Back and Escape close the plot.
+- Rename clearing actions to Clear output and Clear variables.
+- Undefined variables show MATLAB-style errors rather than math.js physical units.
+- Website and Android app show a notice when a newer published release is available online.
+- Website, offline computer ZIP and signed Android APK share version 1.0.0.

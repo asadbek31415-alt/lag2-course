@@ -7,10 +7,11 @@ if(process.env.GITHUB_REF_NAME) assert.equal(process.env.GITHUB_REF_NAME,'v'+ver
 assert.equal(JSON.parse(fs.readFileSync(path.join(root,'android/package.json'))).version,version);
 assert.equal(JSON.parse(fs.readFileSync(path.join(root,'android/package-lock.json'))).version,version);
 assert.ok(fs.readFileSync(path.join(site,'js/release.js'),'utf8').includes("version: '"+version+"'"));
-assert.ok(fs.readFileSync(path.join(site,'js/content.js'),'utf8').includes('Course · v'+version));
+assert.ok(htmlVersionContains());
+function htmlVersionContains() {return fs.readFileSync(path.join(site,'index.html'),'utf8').includes('v'+version);}
 const html=fs.readFileSync(path.join(site,'index.html'),'utf8');
 assert.ok(!/<(?:script|link)[^>]+(?:src|href)=["']https?:/i.test(html),'Remote startup dependency');
-for (const m of html.matchAll(/(?:src|href)=["']([^"']+)["']/g)) if(!/^(?:https?:|#|data:)/.test(m[1])) assert.ok(fs.existsSync(path.join(site,m[1])),m[1]);
+for (const m of html.matchAll(/(?:src|href)=["']([^"']+)["']/g)) if(!/^(?:https?:|#|data:)/.test(m[1])) assert.ok(fs.existsSync(path.join(site,m[1].split("?")[0])),m[1]);
 const css=fs.readFileSync(path.join(site,'vendor/fontawesome/css/all.min.css'),'utf8');
 for(const m of css.matchAll(/url\(([^)]+)\)/g)) assert.ok(fs.existsSync(path.resolve(site,'vendor/fontawesome/css',m[1].replace(/["']/g,''))),m[1]);
 let count=0;
@@ -32,3 +33,18 @@ console.log('Release v'+version+': '+count+' assets, five chapters, bundled libr
 
 
 
+
+for (const command of ['A', 'A+1', 'm', 'cm', 'Pa', 'missingValue', 'norm(A)', 'B = A', 'plot(A)']) {
+    context.engine.reset();
+    const result = context.engine.execute(command);
+    assert.equal(result[0]?.type, 'error', command + ' must report an undefined variable');
+    assert.match(result[0].text, /Undefined function or variable/);
+    assert.equal(context.engine.getWorkspace().length, 0, command + ' must not create variables');
+}
+context.engine.reset();
+assert.equal(context.engine.execute('A = 5; A')[0]?.type, 'result');
+assert.equal(context.engine.execute('clearvars; A')[1]?.type, 'error');
+context.engine.reset();
+assert.equal(context.engine.execute("f = @(x) x.^2; y = f(3)").filter(x => x.type === 'error').length, 0);
+assert.equal(context.engine.execute("title('A and B')").filter(x => x.type === 'error').length, 0);
+console.log('Undefined names, clearing variables, anonymous functions and plot labels checked.');

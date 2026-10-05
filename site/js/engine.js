@@ -759,6 +759,18 @@ const MatlabEngine = (function() {
         return transformed;
     }
 
+    function evaluateExpression(expression, scope = workspace) {
+        const constants = new Set(['pi', 'eps', 'Inf', 'inf', 'NaN', 'nan', 'i', 'j', 'true', 'false']);
+        const helpers = new Set(['mldivide', 'mrdivide', 'elementTimes', 'elementDivide', 'elementPower', 'colon', 'matlabIndex', 'spdiags']);
+        math.parse(expression).traverse(node => {
+            if (!node.isSymbolNode) return;
+            const name = node.name;
+            if (Object.prototype.hasOwnProperty.call(scope, name) || constants.has(name) || functionNames.has(name) || helpers.has(name)) return;
+            throw new Error(`Undefined function or variable '${name}'.`);
+        });
+        return math.evaluate(expression, {eps: Number.EPSILON, Inf: Infinity, NaN, nan: NaN, j: math.complex(0, 1), ...scope});
+    }
+
     function transformElementWise(expr) {
         let transformed = expr;
         [
@@ -982,7 +994,7 @@ const MatlabEngine = (function() {
             params.forEach((param, index) => {
                 scope[param] = args[index];
             });
-            return math.evaluate(transformExpression(body), scope);
+            return evaluateExpression(transformExpression(body), scope);
         };
         fn.__matlabLiteFunction = true;
         fn.__matlabLiteDisplay = `@(${params.join(",")}) ${body}`;
@@ -1001,11 +1013,11 @@ const MatlabEngine = (function() {
 
         const matrix = Array.isArray(target[0]) ? target.map(row => row.slice()) : [target.slice()];
         const args = splitTopLevelArgs(rawArgs).map(arg => arg.trim());
-        const rows = resolveIndex(math.evaluate(transformExpression(args[0]), workspace), matrix.length);
+        const rows = resolveIndex(evaluateExpression(transformExpression(args[0]), workspace), matrix.length);
         const cols = args.length > 1
-            ? resolveIndex(math.evaluate(transformExpression(args[1]), workspace), matrix[0].length)
-            : resolveIndex(math.evaluate(transformExpression(args[0]), workspace), matrix.flat().length);
-        const value = toArray(math.evaluate(transformExpression(rawRight), workspace));
+            ? resolveIndex(evaluateExpression(transformExpression(args[1]), workspace), matrix[0].length)
+            : resolveIndex(evaluateExpression(transformExpression(args[0]), workspace), matrix.flat().length);
+        const value = toArray(evaluateExpression(transformExpression(rawRight), workspace));
 
         if (args.length === 1) {
             const flat = matrix.flat();
@@ -1155,7 +1167,7 @@ const MatlabEngine = (function() {
         const axisMatch = stmt.trim().match(/^axis\s*\(([\s\S]+)\)$/i);
         if (axisMatch) {
             ensureCurrentFigure();
-            const values = flatten(math.evaluate(transformExpression(axisMatch[1]), workspace)).map(Number);
+            const values = flatten(evaluateExpression(transformExpression(axisMatch[1]), workspace)).map(Number);
             if (values.length !== 4 || values.some(value => !Number.isFinite(value))) {
                 throw new Error("axis expects axis([xmin xmax ymin ymax]).");
             }
@@ -1258,7 +1270,7 @@ const MatlabEngine = (function() {
 
     function evaluateFigureArg(arg) {
         if (isStringLiteral(arg)) return stripStringLiteral(arg);
-        return toArray(math.evaluate(transformExpression(arg), workspace));
+        return toArray(evaluateExpression(transformExpression(arg), workspace));
     }
 
     function isStringLiteral(value) {
@@ -1448,7 +1460,7 @@ const MatlabEngine = (function() {
                 return { type: "result", name: assignment.names[0], value: assignedResult };
             }
             const rhs = transformExpression(assignment.right);
-            const result = math.evaluate(rhs, workspace);
+            const result = evaluateExpression(rhs, workspace);
 
             if (assignment.names.length > 1) {
                 const assignedResult = assignMultiple(assignment.names, result);
@@ -1461,7 +1473,7 @@ const MatlabEngine = (function() {
         }
 
         const expr = transformExpression(stmt);
-        const result = math.evaluate(expr, workspace);
+        const result = evaluateExpression(expr, workspace);
         workspace.ans = result;
         return { type: "result", name: "ans", value: result };
     }
@@ -1492,6 +1504,7 @@ const MatlabEngine = (function() {
                     type: "error",
                     text: matlabError(err)
                 });
+                break;
             }
         }
 
@@ -1529,7 +1542,7 @@ const MatlabEngine = (function() {
         const match = header.match(/^for\s+([A-Za-z]\w*)\s*=\s*([\s\S]+)$/i);
         if (!match) throw new Error("Invalid FOR loop syntax.");
         const [, variable, rangeExpr] = match;
-        const values = flatten(math.evaluate(transformExpression(rangeExpr), workspace));
+        const values = flatten(evaluateExpression(transformExpression(rangeExpr), workspace));
 
         values.forEach(value => {
             workspace[variable] = value;
@@ -1542,6 +1555,7 @@ const MatlabEngine = (function() {
 
     function matlabError(err) {
         const message = err && err.message ? err.message : String(err);
+        if (/^Undefined function or variable/i.test(message)) return message;
         if (/Undefined symbol/i.test(message)) return `Undefined function or variable. ${message}`;
         if (/not implemented in MATLAB-Lite/i.test(message)) return message;
         return `Error using MATLAB-Lite\n${message}`;

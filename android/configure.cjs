@@ -2,7 +2,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const gradlePath = path.join(__dirname, 'android/app/build.gradle');
-const version = (process.env.GITHUB_REF_NAME || 'v0.1.0').replace(/^v/, '');
+const version = (process.env.GITHUB_REF_NAME || 'v1.0.0').replace(/^v/, '');
 const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(version);
 if (!match) throw new Error('Expected release tag vMAJOR.MINOR.PATCH');
 const [major, minor, patch] = match.slice(1).map(Number);
@@ -32,3 +32,5 @@ const resources = path.join(__dirname, 'resources');
 for (const dir of fs.readdirSync(resources)) {
   fs.cpSync(path.join(resources,dir),path.join(__dirname,'android/app/src/main/res',dir),{recursive:true});
 }
+const activityPath = path.join(__dirname, 'android/app/src/main/java/uz/turinprepnik/lag2/MainActivity.java');
+fs.copyFileSync(path.join(__dirname, 'MainActivity.java'), activityPath);

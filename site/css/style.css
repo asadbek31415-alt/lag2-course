@@ -1637,9 +1637,22 @@ button {
 /* Release branding and navigation. */
 .brand-mark { flex-shrink: 0; background: white; overflow: hidden; }
 .brand-mark img { width: 100%; height: 100%; object-fit: contain; }
-.release-links {display:flex; flex-wrap:wrap; gap:10px; margin:16px 0;}
-.release-links a {padding:10px 14px; border:1px solid var(--border-strong); border-radius:8px; color:var(--accent); text-decoration:none;}
-#release-notice {padding:12px; margin-bottom:16px; border:1px solid var(--border); border-radius:8px; font-size:.85rem;}
-#release-notice[hidden] {display:none;}
-#release-notice a {color:var(--accent);}
-#release-notice button {margin-left:10px; background:transparent; border:1px solid var(--border); border-radius:4px; cursor:pointer;}
+
+/* Back navigation and figures stay inside the course. */
+.course-back {display:inline-flex; flex-shrink:0; gap:6px; width:auto; padding:0 8px; font-size:.8rem;}
+.course-back:disabled {opacity:.35; cursor:default;}
+.course-downloads {margin-left:auto; color:var(--accent); font-size:.75rem;}
+.figure-dialog {width:min(900px,calc(100vw - 24px)); height:min(680px,calc(100dvh - 24px)); max-width:none; max-height:none; padding:0; border:1px solid var(--border-strong); border-radius:12px; background:var(--bg-panel); color:var(--text-high); overflow:hidden;}
+.figure-dialog[open] {display:flex; flex-direction:column;}
+.figure-dialog::backdrop {background:rgba(0,0,0,.7);}
+.figure-dialog-header {display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 14px; flex-shrink:0;}
+.figure-dialog-header h2 {margin:0; font-size:1rem;}
+.figure-dialog-header button {background:var(--bg-panel-soft); border:1px solid var(--border-strong); border-radius:6px; padding:9px 14px; cursor:pointer; color:var(--text-high); font-size:.9rem;}
+.figure-dialog iframe {width:100%; flex:1; min-height:0; border:0; background:white;}
+@media (max-width:1024px) {.matlab-actions {flex-wrap:wrap; overflow:visible;} .tool-btn span {max-width:none; overflow:visible; text-overflow:clip;} .course-back span {display:none;} .figure-dialog {height:calc(100dvh - 24px);}}
+
+.course-update {position:fixed; z-index:60; bottom:14px; left:50%; transform:translateX(-50%); max-width:calc(100vw - 24px); width:max-content; display:flex; align-items:center; flex-wrap:wrap; gap:10px; padding:12px 14px; border:1px solid var(--border-strong); border-radius:8px; background:#172033; color:var(--text-high); font-size:.85rem; box-shadow:0 4px 20px #0006;}
+.course-update[hidden] {display:none;}
+.course-update a {color:var(--accent);}
+.course-update button {background:transparent; color:var(--text-mid); border:1px solid var(--border); border-radius:4px; padding:5px 8px; cursor:pointer;}
+@media(max-width:1024px) {.course-update {bottom:68px;}}
